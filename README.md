@@ -6,3 +6,5 @@ Built using .NET Core, C#, Blazor, Python (Flask).
 
 ## TODO:
 - Hash passwords in storage
+- Add ability to edit profile
+- Give admin privileges to users with admin role
