@@ -4,7 +4,7 @@
 @inject AuthenticationStateProvider authStateProvider
 @inject ProtectedSessionStorage protectedSessionStorage
 @inject UserService userService
-@inject NavigationManager navManager 
+@inject NavigationManager navManager
 
 <Modal @ref="@ModalRef">
     <ModalContent Centered>
@@ -93,8 +93,6 @@
             return;
         }
         string currentUserID = userSession.Value.ID;
-
-        // do modal thing
 
         string strGoalie = booGoalie ? "yes" : "no";
         HttpClient client = new HttpClient();

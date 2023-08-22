@@ -235,6 +235,11 @@ def addUserToGame(userID=None, gameID=None, isGoalie=None):
 
     if CheckIfUserInGame(userGames, gameID):
         return "You're already in this game!"
+    if not booGoalie and (CountPlayers(gameID) >= int(game['player limit'].values[0])):
+        return "Players for this game are full!"
+    if booGoalie and (CountGoalies(gameID) >= int(game['goalie limit'].values[0])):
+        return "Goalies for this game are full!"
+    
     if str.find(gamePlayers, 'nan') != -1:
         gamePlayers = str.strip(gamePlayers, 'nan')
     if str.find(gameGoalies, 'nan') != -1:
@@ -393,5 +398,21 @@ def RemoveID(Id, Ids):
         Ids = Ids[:(pos + 1)] + Ids[(pos + tagLength + 1):]
     elif len(Ids) >= tagLength and Ids[:tagLength] == tag:
         Ids = Ids[tagLength:]
-
     return Ids
+
+def CountPlayers(gameID):
+    global df_games
+    game = df_games[df_games['id'] == gameID]
+    if len(game) == 0:
+        return 0
+    playerList = game['player list'].values[0]
+    return str.count(playerList, ';')
+
+def CountGoalies(gameID):
+    global df_games
+    game = df_games[df_games['id'] == gameID]
+    if len(game) == 0:
+        return 0
+    goalieList = game['goalie list'].values[0]
+    return str.count(goalieList, ';')
+    
