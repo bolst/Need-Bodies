@@ -1,10 +1,95 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+@using NeedBodies.Auth
+@using NeedBodies.Data
+@inject ProtectedSessionStorage protectedSessionStorage
+@inject UserService userService
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
 
-<h1>Hello, world!</h1>
+<PageTitle>Need Bodies</PageTitle>
 
-Welcome to your new app.
+@if (DropInGame != null)
+    {
+    <DropInModal SelectedGameForDropIn="@DropInGame"/>
+    }
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<Fields>
+    <DisplayHeading Size="DisplayHeadingSize.Is2">Welcome to Need Bodies</DisplayHeading>
 
+    <Divider />
+
+    <Field>
+        <Table Hoverable>
+            <TableHeader>
+                <TableRow>
+                    <TableHeaderCell>Host</TableHeaderCell>
+                    <TableHeaderCell>Location</TableHeaderCell>
+                    <TableHeaderCell>Date</TableHeaderCell>
+                    <TableHeaderCell>Time</TableHeaderCell>
+                    <TableHeaderCell>Players</TableHeaderCell>
+                    <TableHeaderCell>Goalies</TableHeaderCell>
+                    <TableHeaderCell></TableHeaderCell>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+
+                @if (Games == null)
+                {
+                    <p><em>Loading...</em></p>
+                }
+                else
+                {
+                    @foreach (var game in Games)
+                    {
+                        var date = game.FormatDate();
+                        var time = game.FormatTime();
+                        var players = game.FormatPlayerCount();
+                        var goalies = game.FormatGoalieCount();
+                        <TableRow>
+                            <TableRowCell>@game.Host</TableRowCell>
+                            <TableRowCell>@game.Location</TableRowCell>
+                            <TableRowCell>@date</TableRowCell>
+                            <TableRowCell>@time</TableRowCell>
+                            <TableRowCell>@players</TableRowCell>
+                            <TableRowCell>@goalies</TableRowCell>
+
+                            <Button Color="Color.Primary" Clicked="@(e => SetDropInGame(@game))" Outline>Drop in</Button>
+                        </TableRow>
+                    }
+                }
+            </TableBody>
+        </Table>
+
+    </Field>
+</Fields>
+
+@code{
+
+    public List<Game> Games;
+
+    public Game DropInGame { get; set; }
+
+    public void SetDropInGame(Game game) { DropInGame = game; }
+
+    private User currentUser = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HttpClient client = new HttpClient();
+        HttpResponseMessage response = await client.GetAsync(Utilities.HttpAddress + "/games");
+
+        Games = await response.Content.ReadFromJsonAsync<List<Game>>();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (userSession.Success)
+        {
+            string currentUserID = userSession.Value.ID;
+            currentUser = userService.GetByID(currentUserID);
+        }
+    }
+
+    }

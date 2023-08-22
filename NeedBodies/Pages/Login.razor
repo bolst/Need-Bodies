@@ -1,0 +1,61 @@
+﻿@page "/login"
+
+@using NeedBodies.Auth;
+@inject UserService userService
+@inject IJSRuntime js
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.OnY">
+            <CardHeader>
+                <CardTitle>Log in</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <Field Horizontal>
+                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Email</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                        <TextEdit Role="TextRole.Email" Placeholder="Email" @bind-Text="@strEmail" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal>
+                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Password</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                        <TextEdit Role="TextRole.Password" Placeholder="Password" @bind-Text="@strPassword" />
+                    </FieldBody>
+                </Field>
+
+                <Button Color="Color.Primary" Clicked="AuthenticateUserAsync">Log in</Button>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+@code{
+    private string? strEmail { get; set; }
+    private string? strPassword { get; set; }
+
+    private async Task AuthenticateUserAsync()
+    {
+        var user = userService.GetByEmail(strEmail);
+
+        if (user == null || user.Password != strPassword)
+        {
+            await js.InvokeVoidAsync("alert", "Invalid name/password");
+            return;
+        }
+
+        var userAuthStateProvider = (UserAuthenticationStateProvider)authStateProvider;
+        await userAuthStateProvider.UpdateAuthenticationState(new UserSession
+        {
+            Name = user.Name,
+            Role = user.Role,
+            ID = user.ID
+        });
+
+        navManager.NavigateTo("/", true);
+    }
+
+}
+

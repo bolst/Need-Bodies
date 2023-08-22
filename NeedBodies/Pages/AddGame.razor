@@ -1,0 +1,135 @@
+﻿@page "/addgame"
+
+@using NeedBodies.Data
+@using NeedBodies.Auth
+@inject AuthenticationStateProvider authStateProvider;
+@inject UserService userService
+@inject ProtectedSessionStorage protectedSessionStorage
+@inject NavigationManager navManager
+
+<AuthorizeView>
+    <Authorized>
+        <Fields>
+            <Field>
+                <TextEdit Placeholder="Host display name" @bind-Text="@strHost"></TextEdit>
+            </Field>
+            <Field>
+                <FieldHelp>Select date</FieldHelp>
+                <DateEdit TValue="DateTime?" @bind-Date="@selectedDate"></DateEdit>
+            </Field>
+            <Field>
+                <FieldHelp>Select time</FieldHelp>
+                <TimeEdit TValue="TimeSpan?" @bind-Time="@selectedTime"></TimeEdit>
+            </Field>
+            <Field>
+                <FieldHelp>Select location</FieldHelp>
+                @if (Locations == null)
+                {
+                    <p><em>Loading...</em></p>
+                }
+                else
+                {
+                    <Select TValue="string" @bind-SelectedValue="@strLocation">
+                        @foreach (var location in Locations)
+                        {
+                            var loc = location;
+                            <SelectItem Value="loc.Name">@loc.Name</SelectItem>
+                        }
+                    </Select>
+                }
+
+            </Field>
+            <Field>
+                <FieldHelp>Set player limit</FieldHelp>
+                <Select TValue="int" @bind-SelectedValue="@intPlayerLim">
+                    @for (int i = 1; i <= 100; i++)
+                    {
+                        var count = i;
+                        <SelectItem Value="@count">@count</SelectItem>
+                    }
+                </Select>
+            </Field>
+            <Field>
+                <FieldHelp>Set goalie limit</FieldHelp>
+                <Select TValue="int" @bind-SelectedValue="@intGoalieLim">
+                    @for (int i = 1; i <= 40; i++)
+                    {
+                        var count = i;
+                        <SelectItem Value="@count">@count</SelectItem>
+                    }
+                </Select>
+            </Field>
+
+            <Button Color="Color.Primary" Clicked="@AddGameAsync">Add game</Button>
+        </Fields>
+    </Authorized>
+    <NotAuthorized>
+        Login to add a game
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    string strHost { get; set; }
+
+    DateTime? selectedDate { get; set; }
+    TimeSpan? selectedTime { get; set; }
+
+    List<Location> Locations { get; set; }
+    string strLocation { get; set; }
+
+    int intPlayerLim { get; set; }
+    int intGoalieLim { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        if (authState != null)
+        {
+            strHost = authState.User.Identity.Name;
+        }
+
+        // get locations
+        HttpClient client = new HttpClient();
+        HttpResponseMessage response = await client.GetAsync(Utilities.HttpAddress + "/arenas");
+
+        Locations = await response.Content.ReadFromJsonAsync<List<Location>>();
+    }
+
+    public async Task AddGameAsync()
+    {
+        HttpClient client = new HttpClient();
+
+        if (selectedDate == null || selectedTime == null)
+        {
+            return;
+        }
+        string strDate = selectedDate.Value.ToString("yyyyMMdd");
+        string strTime = new DateTime(selectedTime.Value.Ticks).ToString("HHmm");
+
+        JSONDateTimeLocation dateTimeLocation = new JSONDateTimeLocation
+        {
+            date = strDate,
+            time = strTime,
+            location = strLocation
+        };
+
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (!userSession.Success)
+        {
+            return;
+        }
+        string currentUserID = userSession.Value.ID;
+
+        User host = userService.GetByID(currentUserID);
+        string strHostID = host.ID;
+
+        var response = await client.PostAsJsonAsync<JSONDateTimeLocation>($"{Utilities.HttpAddress}/addGame/{strHostID}/{strHost}/{intPlayerLim}/{intGoalieLim}", dateTimeLocation);
+        Game game = null;
+        string message = null;
+
+        navManager.NavigateTo("/");
+    }
+
+}
+

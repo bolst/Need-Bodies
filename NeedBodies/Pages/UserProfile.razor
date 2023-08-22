@@ -1,0 +1,165 @@
+﻿@page "/profile"
+
+@using NeedBodies.Auth
+@using NeedBodies.Data
+@using Microsoft.AspNetCore.WebUtilities
+@inject ProtectedSessionStorage protectedSessionStorage
+@inject UserService userService
+@inject NavigationManager navManager
+@inherits LayoutComponentBase
+
+@if (user != null)
+{
+    <Card>
+        <CardBody>
+            <DisplayHeading Size="DisplayHeadingSize.Is2">@user.Name</DisplayHeading>
+            <Fields>
+                <FieldHelp>Email</FieldHelp>
+                <Field>
+                    <TextEdit Role="TextRole.Email" @bind-Text="@user.Email" ReadOnly></TextEdit>
+                </Field>
+                <FieldHelp>Phone</FieldHelp>
+                <Field>
+                    <TextEdit Role="TextRole.Telephone" @bind-Text="@user.Phone" ReadOnly></TextEdit>
+                </Field>
+                <FieldHelp>Registered Games</FieldHelp>
+                <Field>
+                    <ListGroup Mode="ListGroupMode.Selectable" @bind-SelectedItem="@selectedGameID">
+                        @foreach (var game in RegisteredGames)
+                        {
+                            <ListGroupItem Name="@game.ID">
+                                <Div Flex="Flex.JustifyContent.Between" Width="Width.Is100">
+                                    <Heading Size="HeadingSize.Is5" Margin="Margin.Is1.FromBottom">@game.Host @@@game.Location</Heading>
+                                    <Small>@game.FormatDate() @game.FormatTime()</Small>
+                                </Div>
+                                <Small>@game.FormatPlayerCount() players - @game.FormatGoalieCount() goalies </Small>
+                            </ListGroupItem>
+                        }
+                    </ListGroup>
+
+                    @if(RegisteredGames.Count != 0){
+                        <Button Color="Color.Primary" Clicked="@ViewGame">View game</Button>
+
+                        @if(user.ID == currentUserID)
+                        {
+                            <Button Color="Color.Danger" Clicked="@RemoveFromGame">Drop out</Button>
+                        }
+                    }
+                </Field>
+                <FieldHelp>Hosted Games</FieldHelp>
+                <Field>
+                    <ListGroup Mode="ListGroupMode.Selectable" @bind-SelectedItem="@selectedGameID">
+                        @foreach (var game in HostedGames)
+                        {
+                            <ListGroupItem Name="@game.ID">
+                                <Div Flex="Flex.JustifyContent.Between" Width="Width.Is100">
+                                    <Heading Size="HeadingSize.Is5" Margin="Margin.Is1.FromBottom">@game.Host @@@game.Location</Heading>
+                                    <Small>@game.FormatDate() @game.FormatTime()</Small>
+                                </Div>
+                                <Small>@game.FormatPlayerCount() players - @game.FormatGoalieCount() goalies </Small>
+                            </ListGroupItem>
+                        }
+                    </ListGroup>
+
+                    @if(HostedGames.Count != 0){
+                        <Button Color="Color.Primary" Clicked="@ViewGame">View game</Button>
+                        @if(user.ID == currentUserID)
+                        {
+                            <Button Color="Color.Danger" Clicked="@RemoveHostedGame">Delete game</Button>
+                        }
+                    }
+                </Field>
+            </Fields>
+        </CardBody>
+    </Card>
+}
+else
+{
+    <p><em>loading...</em></p>
+}
+
+@code {
+
+    private string selectedGameID { get; set; }
+
+    private string currentUserID { get; set; }
+
+    private List<Game> RegisteredGames { get; set; }
+    private List<Game> HostedGames { get; set; }
+
+    private User user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (!userSession.Success)
+        {
+            return;
+        }
+        currentUserID = userSession.Value.ID;
+
+        var uri = navManager.ToAbsoluteUri(navManager.Uri);
+        var queryStrings = QueryHelpers.ParseQuery(uri.Query);
+        string userID = String.Empty;
+        if (queryStrings.TryGetValue("userID", out var requestedUserID))
+        {
+            userID = requestedUserID;
+        }
+
+        HttpClient client = new HttpClient();
+
+        if (userID == String.Empty)
+        {
+            userID = currentUserID;
+        }
+        user = userService.GetByID(userID);
+
+        RegisteredGames = await client.GetFromJsonAsync<List<Game>>(Utilities.HttpAddress + $"/getUserGames/{userID}");
+        HostedGames = await client.GetFromJsonAsync<List<Game>>(Utilities.HttpAddress + $"/getUserHostedGames/{userID}");
+
+        if (RegisteredGames.Count == 0)
+        {
+            // no user found
+            return;
+        }
+    }
+
+    protected void ViewGame()
+    {
+        if (selectedGameID == null) return;
+        navManager.NavigateTo($"game?gameID={selectedGameID}");
+    }
+
+    protected async Task RemoveFromGame()
+    {
+        HttpClient client = new HttpClient();
+        var response = await client.GetStringAsync(Utilities.HttpAddress + $"/removeUserFromGame/{currentUserID}/{selectedGameID}");
+
+        if (response == "success")
+        {
+            navManager.NavigateTo("/", true);
+        }
+        else
+        {
+            // show message
+        }
+            return;
+    }
+
+    protected async Task RemoveHostedGame()
+    {
+        HttpClient client = new HttpClient();
+        var response = await client.GetStringAsync(Utilities.HttpAddress + $"/removeGame/{selectedGameID}");
+
+        if (response == "success")
+        {
+            navManager.NavigateTo("/", true);
+        }
+        else
+        {
+            //show message
+        }
+        return;
+    }
+}
+

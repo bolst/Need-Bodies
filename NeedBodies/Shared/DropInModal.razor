@@ -1,0 +1,134 @@
+﻿@using NeedBodies.Data
+@using NeedBodies.Auth
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+@inject AuthenticationStateProvider authStateProvider
+@inject ProtectedSessionStorage protectedSessionStorage
+@inject UserService userService
+@inject NavigationManager navManager 
+
+<Modal @ref="@ModalRef">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Confirm drop in</ModalTitle>
+            <CloseButton />
+        </ModalHeader>
+        <ModalBody>
+            @if (SelectedGameForDropIn != null)
+            {
+
+                <Field>
+                    <FieldLabel>Host: @SelectedGameForDropIn.Host</FieldLabel>
+                </Field>
+                <Field>
+                    <FieldLabel>Location: @SelectedGameForDropIn.Location</FieldLabel>
+                </Field>
+                <Field>
+                    <FieldLabel>Date: @SelectedGameForDropIn.FormatDate()</FieldLabel>
+                </Field>
+                <Field>
+                    <FieldLabel>Time: @SelectedGameForDropIn.FormatTime()</FieldLabel>
+                </Field>
+
+                <Check TValue="bool" @bind-Checked="@booGoalie">Goalie?</Check>
+
+
+
+                <Alert Color="Color.Primary" @bind-Visible="@DropInMessageVisibility">
+                    <AlertDescription>
+                        @DropInMessage
+                    </AlertDescription>
+                </Alert>
+            }
+            else
+            {
+                <Paragraph>Loading...</Paragraph>
+            }
+        </ModalBody>
+        <ModalFooter>
+            <Button Color="Color.Primary" Clicked="@(e => @DropInToGameAsync(@SelectedGameForDropIn.ID))">Drop in</Button>
+            <Button Color="Color.Danger" Clicked="@HideModal">Cancel</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+@code {
+
+    [Parameter]
+    public Game SelectedGameForDropIn { get; set; }
+
+    public Modal ModalRef { get; set; }
+
+    bool booGoalie { get; set; }
+
+    bool DropInMessageVisibility = false;
+    string DropInMessage { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        ModalRef.Show();
+    }
+
+    public async Task HideModal()
+    {
+        ModalRef.Hide();
+        await Task.Delay(200);
+        navManager.NavigateTo("/", true);
+    }
+
+    public async Task DropInToGameAsync(string gameID)
+    {
+        var userAuthStateProvider = (UserAuthenticationStateProvider)authStateProvider;
+        var authState = await userAuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity.Name == null)
+        {
+            // log in to drop in
+            navManager.NavigateTo("/signup");
+            return;
+        }
+
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (!userSession.Success)
+        {
+            navManager.NavigateTo("/login");
+            return;
+        }
+        string currentUserID = userSession.Value.ID;
+
+        // do modal thing
+
+        string strGoalie = booGoalie ? "yes" : "no";
+        HttpClient client = new HttpClient();
+        var response = await client.GetAsync(Utilities.HttpAddress + $"/addUserToGame/{currentUserID}/{gameID}/{strGoalie}");
+        // if response == success.....
+        string message;
+        try
+        {
+            message = await response.Content.ReadAsStringAsync();
+        }
+        catch
+        {
+            // TODO: something went wrong
+            return;
+        }
+
+        if (message == "success")
+        {
+            // TODO: added!
+            ModalRef.Hide();
+            navManager.NavigateTo("/", true);
+            return;
+        }
+        else
+        {
+            // display message
+            DropInMessage = message;
+            DropInMessageVisibility = true;
+            return;
+        }
+
+        ModalRef.Hide();
+        return;
+    }
+
+}
+

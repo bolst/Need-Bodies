@@ -1,0 +1,110 @@
+﻿@using NeedBodies.Auth
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager navManager
+@inject UserService userService
+@inject ProtectedSessionStorage protectedSessionStorage
+
+<Bar @bind-Visible="@topbarVisible" Breakpoint="Breakpoint.Desktop" Background="Background.White" Shadow="Shadow.Default" ThemeContrast="ThemeContrast.Light">
+    <BarBrand>
+        <BarItem>
+            <BarLink To="">
+                <BarIcon IconName="IconName.Dashboard" />
+                Need Bodies
+            </BarLink>
+        </BarItem>
+    </BarBrand>
+    <BarToggler />
+    <BarMenu>
+        <BarStart>
+            <BarItem>
+                <BarLink To="" >Home</BarLink>
+            </BarItem>
+            @if (currentUser != null)
+            {
+                <BarItem>
+                    <BarLink To="/addgame">Add Game</BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink To="/profile">Profile</BarLink>
+                </BarItem>
+            }
+            @*
+                <BarItem>
+                    <BarDropdown>
+                        <BarDropdownToggle>More</BarDropdownToggle>
+                        <BarDropdownMenu>
+                            <BarDropdownItem To="https://blazorise.com/docs/start/">
+                                Quick-Start Guide
+                            </BarDropdownItem>
+                            <BarDropdownDivider />
+                            <BarDropdownItem To="https://blazorise.com/docs/usage/">
+                                Usage
+                            </BarDropdownItem>
+                        </BarDropdownMenu>
+                    </BarDropdown>
+                </BarItem>
+            *@
+
+        </BarStart>
+        <BarEnd>
+            <BarItem>
+                <Progress Value="100"/>
+            </BarItem>
+            <BarItem>
+                <BarLink To="https://github.com/bolst/"><BarIcon IconName="GitHubLogo"></BarIcon></BarLink>
+            </BarItem>
+
+            @if (currentUser != null)
+            {
+                <BarItem>
+                    <BarLink>Welcome back, @currentUser.Name!</BarLink>
+                </BarItem>
+                <BarItem>
+                    <BarLink TextColor="TextColor.Danger" @onclick="@LogUserOutAsync" To="">Log out</BarLink>
+                </BarItem>
+            }
+            else
+            {
+                <BarItem>
+                    <BarLink TextColor="TextColor.Primary" To="login">Login</BarLink>
+                </BarItem>
+
+                <BarItem>
+                    <BarLink TextColor="TextColor.Danger" To="signup">Sign up</BarLink>
+                </BarItem>
+            }
+        </BarEnd>
+    </BarMenu>
+</Bar>
+
+
+@code {
+
+    private bool topbarVisible = false;
+
+    private User currentUser { get; set; }
+
+    RenderFragment GitHubLogo =@<img src="/githublogo.png" style="width:24px; height: 24px" />;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (userSession.Success)
+        {
+            string currentUserID = userSession.Value.ID;
+            currentUser = userService.GetByID(currentUserID);
+            await InvokeAsync ( ()=> StateHasChanged());
+            return;
+        }
+    }
+
+    public async Task LogUserOutAsync()
+    {
+        var userAuthStateProvider = (UserAuthenticationStateProvider)authStateProvider;
+        await userAuthStateProvider.UpdateAuthenticationState(null);
+        navManager.NavigateTo("/", true);
+    }
+
+
+}
+

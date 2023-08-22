@@ -1,20 +1,39 @@
 ﻿@inherits LayoutComponentBase
+@using NeedBodies.Auth
+@inject ProtectedSessionStorage protectedSessionStorage
+@inject UserService userService 
 
 <PageTitle>NeedBodies</PageTitle>
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+<Layout Sider>
+    <LayoutSider>
+        <LayoutSiderContent>
+            @*<SideMenu />*@
+        </LayoutSiderContent>
+    </LayoutSider>
+    <Layout>
+        <LayoutHeader Fixed>
+            <TopMenu />
+        </LayoutHeader>
+            <Divider Visibility="Visibility.Invisible"/>
+        <LayoutContent Padding="Padding.Is4.OnX">
             @Body
-        </article>
-    </main>
-</div>
+        </LayoutContent>
+    </Layout>
+</Layout>
 
+@code{
+
+    private User currentUser { get; set; }
+    private async Task OnInitializedAsync()
+    {
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (userSession.Success)
+        {
+            string currentUserID = userSession.Value.ID;
+            currentUser = userService.GetByID(currentUserID);
+            return;
+        }
+    }
+
+}

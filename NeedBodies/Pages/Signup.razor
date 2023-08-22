@@ -1,0 +1,104 @@
+﻿@page "/signup"
+
+@using NeedBodies.Data
+@using NeedBodies.Auth
+@inject UserService userService
+@inject IJSRuntime js
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider authStateProvider
+
+<Row>
+    <Column>
+        <Card Margin="Margin.Is4.OnY">
+            <CardHeader>
+                <CardTitle>Sign up</CardTitle>
+            </CardHeader>
+            <CardBody>
+                <Field Horizontal>
+                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Name</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                        <TextEdit Role="TextRole.Text" Placeholder="Name" @bind-Text="@strName" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal>
+                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Email</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                        <TextEdit Role="TextRole.Email" Placeholder="Email" @bind-Text="@strEmail" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal>
+                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Phone</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                        <TextEdit Role="TextRole.Telephone" Placeholder="Phone" @bind-Text="@strPhone" />
+                    </FieldBody>
+                </Field>
+                <Field Horizontal>
+                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Password</FieldLabel>
+                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                        <TextEdit Role="TextRole.Password" Placeholder="Password" @bind-Text="@strPassword" />
+                    </FieldBody>
+                </Field>
+
+                <Button Color="Color.Primary" Clicked="@SignUpUserAsync">Sign up</Button>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+@code {
+    string? strName { get; set; }
+    string? strEmail { get; set; }
+    string? strPhone { get; set; }
+    string? strPassword { get; set; }
+
+    public async Task SignUpUserAsync()
+    {
+        HttpClient client = new HttpClient();
+
+        JSONEmailPassword emailPassword = new JSONEmailPassword
+        {
+            email = strEmail,
+            password = strPassword
+        };
+
+        var response = await client.PostAsJsonAsync<JSONEmailPassword>($"{Utilities.HttpAddress}/addUser/{strName}/{strPhone}", emailPassword);
+        User newUser = null;
+        string message = null;
+
+        try
+        {
+            newUser = await response.Content.ReadFromJsonAsync<User>();
+        }
+        catch(Exception exc)
+        {
+            try
+            {
+                message = await response.Content.ReadAsStringAsync();
+            }
+            catch { }
+        }
+
+        if (newUser != null)
+        {
+            userService.addUser(newUser);
+            var userAuthStateProvider = (UserAuthenticationStateProvider)authStateProvider;
+            await userAuthStateProvider.UpdateAuthenticationState(new UserSession
+            {
+                Name = newUser.Name,
+                Role = newUser.Role,
+                ID = newUser.ID
+            });
+
+            navManager.NavigateTo("/", true);
+        }
+        else if (message != null)
+        {
+            await js.InvokeVoidAsync("alert", message);
+        }
+        else // something went wrong in GET
+        {
+            await js.InvokeVoidAsync("alert", "Something went wrong");
+        }
+    }
+}
+

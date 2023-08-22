@@ -1,13 +1,52 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Components.Web;
 using NeedBodies.Data;
+using NeedBodies.Auth;
+using Blazorise;
+using Blazorise.Bootstrap;
+using Blazorise.Icons.FontAwesome;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services
+    .AddBlazorise(options =>
+    {
+        options.Immediate = true;
+    })
+    .AddBootstrapProviders()
+    .AddFontAwesomeIcons();
+
 // Add services to the container.
+builder.Services.AddAuthenticationCore();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddScoped<AuthenticationStateProvider, UserAuthenticationStateProvider>();
+
+// needed because async can't be in a constructor
+
+HttpClient client = new HttpClient();
+List<User> users;
+try
+{
+    users = await client.GetFromJsonAsync<List<User>>(Utilities.HttpAddress + "/users");
+}
+catch
+{
+    // can't connect to server
+    return;
+}
+builder.Services.AddSingleton(sp =>
+{
+    var service = new UserService(users);
+    return service;
+});
+
 builder.Services.AddSingleton<WeatherForecastService>();
+
+builder.Services.AddServerSideBlazor();
 
 var app = builder.Build();
 

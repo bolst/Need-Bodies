@@ -1,0 +1,112 @@
+﻿@page "/game"
+
+@using NeedBodies.Auth
+@using NeedBodies.Data
+@using Microsoft.AspNetCore.WebUtilities
+@inject ProtectedSessionStorage protectedSessionStorage
+@inject UserService userService
+@inject NavigationManager navManager
+@inherits LayoutComponentBase
+
+@if (game != null)
+{
+    <Card>
+        <CardBody>
+            <DisplayHeading Size="DisplayHeadingSize.Is2">@game.Host @@@game.Location </DisplayHeading>
+            <Fields>
+                <FieldHelp>Game ID</FieldHelp>
+                <Field>
+                    <TextEdit Text="@game.ID" ReadOnly></TextEdit>
+                </Field>
+                <FieldHelp>Date</FieldHelp>
+                <Field>
+                    <TextEdit Text="@game.FormatDate()" ReadOnly></TextEdit>
+                </Field>
+                <FieldHelp>Time</FieldHelp>
+                <Field>
+                    <TextEdit Text="@game.FormatTime()" ReadOnly></TextEdit>
+                </Field>
+                
+                <FieldHelp>Registered Players - @game.FormatPlayerCount()</FieldHelp>
+                <Field>
+                    <ListGroup Mode="ListGroupMode.Selectable" @bind-SelectedItem="@selectedUserID">
+                        @foreach (var player in game.GetPlayers(@userService))
+                        {
+                            <ListGroupItem Name="@player.ID">
+                                <Div Flex="Flex.JustifyContent.Between" Width="Width.Is100">
+                                    <Heading Size="HeadingSize.Is5" Margin="Margin.Is1.FromBottom">@player.Name</Heading>
+                                </Div>
+                            </ListGroupItem>
+                        }
+                    </ListGroup>
+                </Field>
+                <FieldHelp>Registered Goalies - @game.FormatGoalieCount()</FieldHelp>
+                <Field>
+                    <ListGroup Mode="ListGroupMode.Selectable" @bind-SelectedItem="@selectedUserID">
+                        @foreach (var player in game.GetGoalies(@userService))
+                        {
+                            <ListGroupItem Name="@player.ID">
+                                <Div Flex="Flex.JustifyContent.Between" Width="Width.Is100">
+                                    <Heading Size="HeadingSize.Is5" Margin="Margin.Is1.FromBottom">@player.Name</Heading>
+                                </Div>
+                            </ListGroupItem>
+                        }
+                    </ListGroup>
+                </Field>
+
+                @if(game.GetPlayers(userService).Count + game.GetGoalies(userService).Count != 0)
+                {
+                    <Button Color="Color.Primary" Clicked="@ViewUser">View user</Button>
+                }
+            </Fields>
+        </CardBody>
+    </Card>
+}
+else
+{
+    <p><em>loading...</em></p>
+}
+
+@code {
+
+    private string selectedUserID { get; set; }
+
+    protected List<User> RegisteredUsers { get; set; }
+
+    public User user;
+
+    public Game game { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+        if (!userSession.Success)
+        {
+            return;
+        }
+        string currentUserID = userSession.Value.ID;
+
+        user = userService.GetByID(currentUserID);
+
+        // ---
+
+        var uri = navManager.ToAbsoluteUri(navManager.Uri);
+        var queryStrings = QueryHelpers.ParseQuery(uri.Query);
+        string gameID = String.Empty;
+        if (queryStrings.TryGetValue("gameID", out var requestedGameID))
+        {
+            gameID = requestedGameID;
+        }
+
+        HttpClient client = new HttpClient();
+        var gameAsList = await client.GetFromJsonAsync<List<Game>>($"{Utilities.HttpAddress}/games?gameID={gameID}");
+        game = gameAsList[0];
+    }
+
+    protected void ViewUser()
+    {
+        if (selectedUserID == null) return;
+        navManager.NavigateTo($"/profile?userID={selectedUserID}");
+    }
+    }
+
