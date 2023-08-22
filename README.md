@@ -8,3 +8,4 @@ Built using .NET Core, C#, Blazor, Python (Flask).
 - Hash passwords in storage
 - Add ability to edit profile
 - Give admin privileges to users with admin role
+- Figure out why TopMenu won't push some items all the way right
