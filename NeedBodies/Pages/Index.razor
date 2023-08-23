@@ -8,18 +8,17 @@
 @inject NavigationManager navManager
 @inject IJSRuntime js
 
-<PageTitle>Need Bodies</PageTitle>
+<PageTitle>@Utilities.brandName</PageTitle>
 
 @if (DropInGame != null)
-    {
+{
     <DropInModal SelectedGameForDropIn="@DropInGame"/>
-    }
+}
+
+<DisplayHeading Size="DisplayHeadingSize.Is2">Welcome to @Utilities.brandName</DisplayHeading>
+<Divider />
 
 <Fields>
-    <DisplayHeading Size="DisplayHeadingSize.Is2">Welcome to Need Bodies</DisplayHeading>
-
-    <Divider />
-
     <Field>
         <Table Hoverable>
             <TableHeader>
@@ -81,6 +80,12 @@
     </Field>
 </Fields>
 
+@*<Snackbar @ref="snackbar" Color="SnackbarColor.Danger">
+    <SnackbarBody>
+        @snackbarMessage
+    </SnackbarBody>
+</Snackbar>*@
+
 @code{
 
     public List<Game> Games;
@@ -91,22 +96,22 @@
 
     private User currentUser = null;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            Games = await Utilities.GetGames();
-        }
-        catch(Exception exc)
-        {
-            await js.InvokeVoidAsync("alert", exc.ToString());
-            return;
-        }
-    }
+    private Snackbar snackbar;
+    private string snackbarMessage { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender == false) return;
+
+        try
+        {
+            Games = await Utilities.GetGames();
+        }
+        catch (Exception exc)
+        {
+            snackbarMessage = "Unable to load games:" + exc.ToString();
+            await snackbar.Show();
+        }
 
         var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
         if (userSession.Success)

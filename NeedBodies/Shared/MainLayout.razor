@@ -1,9 +1,10 @@
 ﻿@inherits LayoutComponentBase
 @using NeedBodies.Auth
+@using NeedBodies.Data
 @inject ProtectedSessionStorage protectedSessionStorage
 @inject UserService userService 
 
-<PageTitle>NeedBodies</PageTitle>
+<PageTitle>@Utilities.brandName</PageTitle>
 
 <Layout Sider>
     <LayoutSider>

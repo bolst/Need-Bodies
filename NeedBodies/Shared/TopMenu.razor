@@ -1,4 +1,5 @@
 ﻿@using NeedBodies.Auth
+@using NeedBodies.Data
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager navManager
 @inject UserService userService
@@ -9,7 +10,7 @@
         <BarItem>
             <BarLink To="">
                 <BarIcon IconName="IconName.Dashboard" />
-                Need Bodies
+                @Utilities.brandName
             </BarLink>
         </BarItem>
     </BarBrand>

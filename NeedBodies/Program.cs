@@ -7,6 +7,7 @@ using NeedBodies.Auth;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
+using Blazorise.Snackbar;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +32,7 @@ HttpClient client = new HttpClient();
 List<User> users;
 try
 {
-    users = await client.GetFromJsonAsync<List<User>>(Utilities.HttpAddress + "/users");
+    users = await client.GetFromJsonAsync<List<User>>(Utilities.httpAddress + "/users");
 }
 catch
 {

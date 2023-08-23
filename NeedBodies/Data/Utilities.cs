@@ -3,10 +3,14 @@ namespace NeedBodies.Data
 {
 	public static class Utilities
 	{
-		public static readonly string Brand = "Need Bodies";
-		public static readonly string HttpAddress = "http://127.0.0.1:5000";
+		public static readonly string brandName = "Need Bodies";
+		public static readonly string httpAddress = "http://127.0.0.1:5000";
+		public static readonly string passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+		public static readonly int playerLimit = 100;
+		public static readonly int goalieLimit = 20;
 
-		public static async Task<string> AddGame(string strHostID, string strHost, int intPlayerLim, int intGoalieLim, string strDate, string strTime, string strLocation)
+
+        public static async Task<string> AddGame(string strHostID, string strHost, int intPlayerLim, int intGoalieLim, string strDate, string strTime, string strLocation)
 		{
 			HttpClient client = new HttpClient();
 
@@ -17,7 +21,7 @@ namespace NeedBodies.Data
                 location = strLocation
             };
 
-            var response = await client.PostAsJsonAsync<JSONDateTimeLocation>($"{Utilities.HttpAddress}/addGame/{strHostID}/{strHost}/{intPlayerLim}/{intGoalieLim}", dateTimeLocation);
+            var response = await client.PostAsJsonAsync<JSONDateTimeLocation>($"{Utilities.httpAddress}/addGame/{strHostID}/{strHost}/{intPlayerLim}/{intGoalieLim}", dateTimeLocation);
 			if (response.IsSuccessStatusCode)
 			{
 				return await response.Content.ReadAsStringAsync();
@@ -36,7 +40,7 @@ namespace NeedBodies.Data
                 password = strPassword
             };
 
-            var response = await client.PostAsJsonAsync<JSONEmailPassword>($"{Utilities.HttpAddress}/addUser/{strName}/{strPhone}", emailPassword);
+            var response = await client.PostAsJsonAsync<JSONEmailPassword>($"{Utilities.httpAddress}/addUser/{strName}/{strPhone}", emailPassword);
 			return await response.Content.ReadFromJsonAsync<User>();
 
         }
@@ -44,19 +48,19 @@ namespace NeedBodies.Data
         public static async Task<List<Game>> GetUserGames(string userID)
 		{
 			HttpClient client = new HttpClient();
-			return await client.GetFromJsonAsync<List<Game>>(Utilities.HttpAddress + $"/getUserGames/{userID}");
+			return await client.GetFromJsonAsync<List<Game>>(Utilities.httpAddress + $"/getUserGames/{userID}");
         }
 
 		public static async Task<List<Game>> GetUserHostedGames(string userID)
 		{
 			HttpClient client = new HttpClient();
-			return await client.GetFromJsonAsync<List<Game>>(Utilities.HttpAddress + $"/getUserHostedGames/{userID}");
+			return await client.GetFromJsonAsync<List<Game>>(Utilities.httpAddress + $"/getUserHostedGames/{userID}");
         }
 
 		public static async Task<List<Location>> GetArenas()
 		{
             HttpClient client = new HttpClient();
-			return await client.GetFromJsonAsync<List<Location>>(Utilities.HttpAddress + "/arenas");
+			return await client.GetFromJsonAsync<List<Location>>(Utilities.httpAddress + "/arenas");
         }
 
 		public static async Task<List<Game>> GetGames(string gameID = "-1")
@@ -66,30 +70,30 @@ namespace NeedBodies.Data
 
             if (gameID == "-1")
 			{
-                return await client.GetFromJsonAsync<List<Game>>($"{Utilities.HttpAddress}/games");
+                return await client.GetFromJsonAsync<List<Game>>($"{Utilities.httpAddress}/games");
             }
             else
 			{
-				return await client.GetFromJsonAsync<List<Game>>($"{Utilities.HttpAddress}/games?gameID={gameID}");
+				return await client.GetFromJsonAsync<List<Game>>($"{Utilities.httpAddress}/games?gameID={gameID}");
             }
 		}
 
 		public static async Task<string> RemoveUserFromGame(string userID, string gameID)
 		{
             HttpClient client = new HttpClient();
-            return await client.GetStringAsync(Utilities.HttpAddress + $"/removeUserFromGame/{userID}/{gameID}");
+            return await client.GetStringAsync(Utilities.httpAddress + $"/removeUserFromGame/{userID}/{gameID}");
         }
 
 		public static async Task<string> RemoveGame(string gameID)
 		{
             HttpClient client = new HttpClient();
-            return await client.GetStringAsync(Utilities.HttpAddress + $"/removeGame/{gameID}");
+            return await client.GetStringAsync(Utilities.httpAddress + $"/removeGame/{gameID}");
         }
 
 		public static async Task<bool> IsUserInGame(string userID, string gameID)
 		{
             HttpClient client = new HttpClient();
-			string response = await client.GetStringAsync(Utilities.HttpAddress + $"/isUserInGame/{userID}/{gameID}");
+			string response = await client.GetStringAsync(Utilities.httpAddress + $"/isUserInGame/{userID}/{gameID}");
 			return response == "yes";
         }
     }

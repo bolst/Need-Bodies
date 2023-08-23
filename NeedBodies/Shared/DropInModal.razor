@@ -97,7 +97,7 @@
 
         string strGoalie = booGoalie ? "yes" : "no";
         HttpClient client = new HttpClient();
-        var response = await client.GetAsync(Utilities.HttpAddress + $"/addUserToGame/{currentUserID}/{gameID}/{strGoalie}");
+        var response = await client.GetAsync(Utilities.httpAddress + $"/addUserToGame/{currentUserID}/{gameID}/{strGoalie}");
         // if response == success.....
         string message;
         try

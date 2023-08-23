@@ -17,67 +17,71 @@
                         <CardTitle>Add game</CardTitle>
                     </CardHeader>
                     <CardBody>
-                        <Field Horizontal>
-                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Host display name</FieldLabel>
-                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <TextEdit Placeholder="This is what will display under 'host' on main page" @bind-Text="@strHost"></TextEdit>
-                            </FieldBody>
-                        </Field>
-                        <Field Horizontal>
-                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Date</FieldLabel>
-                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <DateEdit TValue="DateTime?" @bind-Date="@selectedDate"></DateEdit>
-                            </FieldBody>
-                        </Field>
-                        <Field Horizontal>
-                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Time</FieldLabel>
-                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <TimeEdit TValue="TimeSpan?" @bind-Time="@selectedTime"></TimeEdit>
-                            </FieldBody>
-                        </Field>
-                        <Field Horizontal>
-                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Location</FieldLabel>
-                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                @if (Locations == null)
-                                {
-                                    <p><em>Loading...</em></p>
-                                }
-                                else
-                                {
-                                    <Select TValue="string" @bind-SelectedValue="@strLocation">
-                                        @foreach (var location in Locations)
+                        <Validations @ref="validations" ValidateOnLoad="false">
+                            <Validation Validator="ValidationRule.IsNotEmpty">
+                                <Field Horizontal>
+                                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Host display name</FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                        <TextEdit Placeholder="This is what will display under 'host' on main page" @bind-Text="@strHost"></TextEdit>
+                                    </FieldBody>
+                                </Field>
+                            </Validation>
+                                <Field Horizontal>
+                                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Date</FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                        <DateEdit TValue="DateTime?" @bind-Date="@selectedDate"></DateEdit>
+                                    </FieldBody>
+                                </Field>
+                                <Field Horizontal>
+                                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Time</FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                        <TimeEdit TValue="TimeSpan?" @bind-Time="@selectedTime"></TimeEdit>
+                                    </FieldBody>
+                                </Field>
+                                <Field Horizontal>
+                                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Location</FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                        @if (Locations == null)
                                         {
-                                            var loc = location;
-                                            <SelectItem Value="loc.Name">@loc.Name</SelectItem>
+                                            <p><em>Loading...</em></p>
                                         }
-                                    </Select>
-                                }
-                            </FieldBody>
-                        </Field>
-                        <Field Horizontal>
-                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Player limit</FieldLabel>
-                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <Select TValue="int" @bind-SelectedValue="@intPlayerLim">
-                                    @for (int i = 1; i <= 100; i++)
-                                    {
-                                        var count = i;
-                                        <SelectItem Value="@count">@count</SelectItem>
-                                    }
-                                </Select>
-                            </FieldBody>
-                        </Field>
-                        <Field Horizontal>
-                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Goalie limit</FieldLabel>
-                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <Select TValue="int" @bind-SelectedValue="@intGoalieLim">
-                                    @for (int i = 1; i <= 40; i++)
-                                    {
-                                        var count = i;
-                                        <SelectItem Value="@count">@count</SelectItem>
-                                    }
-                                </Select>
-                            </FieldBody>
-                        </Field>
+                                        else
+                                        {
+                                            <Select TValue="string" @bind-SelectedValue="@strLocation">
+                                                @foreach (var location in Locations)
+                                                {
+                                                    var loc = location;
+                                                    <SelectItem Value="loc.Name">@loc.Name</SelectItem>
+                                                }
+                                            </Select>
+                                        }
+                                    </FieldBody>
+                                </Field>
+                                <Field Horizontal>
+                                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Player limit</FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                        <Select TValue="int" @bind-SelectedValue="@intPlayerLim">
+                                            @for (int i = 1; i <= Utilities.playerLimit; i++)
+                                            {
+                                                var count = i;
+                                                <SelectItem Value="@count">@count</SelectItem>
+                                            }
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                                <Field Horizontal>
+                                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Goalie limit</FieldLabel>
+                                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                        <Select TValue="int" @bind-SelectedValue="@intGoalieLim">
+                                            @for (int i = 1; i <= Utilities.goalieLimit; i++)
+                                            {
+                                                var count = i;
+                                                <SelectItem Value="@count">@count</SelectItem>
+                                            }
+                                        </Select>
+                                    </FieldBody>
+                                </Field>
+                        </Validations>
 
                         <Button Color="Color.Primary" Clicked="@AddGameAsync">Add game</Button>
                     </CardBody>
@@ -92,6 +96,8 @@
 
 @code {
 
+    Validations validations;
+
     string strHost { get; set; }
 
     DateTime? selectedDate { get; set; }
@@ -102,6 +108,35 @@
 
     int intPlayerLim { get; set; }
     int intGoalieLim { get; set; }
+
+    private bool ValidateDate()
+    {
+        return selectedDate > DateTime.Now;
+    }
+
+    private bool ValidateLocation()
+    {
+        return Locations.Any(location => location.Name == strLocation);
+    }
+
+    private bool ValidatePlayerLimit()
+    {
+        return intPlayerLim >= 1 && intPlayerLim <= NeedBodies.Data.Utilities.playerLimit;
+    }
+
+    private bool ValidateGoalieLimit()
+    {
+        return intGoalieLim >= 1 && intGoalieLim <= NeedBodies.Data.Utilities.goalieLimit;
+    }
+
+    private async Task<bool> ValidateAll()
+    {
+        return await validations.ValidateAll()
+            && ValidateDate()
+            && ValidateLocation()
+            && ValidatePlayerLimit()
+            && ValidateGoalieLimit();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -124,10 +159,8 @@
 
     public async Task AddGameAsync()
     {
-        if (selectedDate == null || selectedTime == null)
-        {
-            return;
-        }
+        if (!await ValidateAll()) return;
+
         string strDate = selectedDate.Value.ToString("yyyyMMdd");
         string strTime = new DateTime(selectedTime.Value.Ticks).ToString("HHmm");
 
