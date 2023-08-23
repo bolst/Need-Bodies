@@ -85,6 +85,13 @@ namespace NeedBodies.Data
             HttpClient client = new HttpClient();
             return await client.GetStringAsync(Utilities.HttpAddress + $"/removeGame/{gameID}");
         }
+
+		public static async Task<bool> IsUserInGame(string userID, string gameID)
+		{
+            HttpClient client = new HttpClient();
+			string response = await client.GetStringAsync(Utilities.HttpAddress + $"/isUserInGame/{userID}/{gameID}");
+			return response == "yes";
+        }
     }
 }
 

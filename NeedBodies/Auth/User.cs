@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using NeedBodies.Data;
 
 namespace NeedBodies.Auth
 {

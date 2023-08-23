@@ -78,8 +78,11 @@ else
 
     public Game game { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+
+        if (firstRender == false) return;
+
         var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
         if (!userSession.Success)
         {
@@ -104,11 +107,11 @@ else
             List<Game> gameAsList = await Utilities.GetGames(gameID);
             game = gameAsList[0];
         }
-        catch(Exception exc)
+        catch (Exception exc)
         {
             await js.InvokeVoidAsync("alert", exc.ToString());
-            return;
         }
+        await InvokeAsync(() => StateHasChanged());
     }
 
     protected void ViewUser()

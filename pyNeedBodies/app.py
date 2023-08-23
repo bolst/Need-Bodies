@@ -359,6 +359,20 @@ def getUserHostedGames(userID=None):
     hostedGameIDs['time'] = hostedGameIDs['time'].astype(str)
     return hostedGameIDs.to_json(orient='records')
 
+@app.route('/isUserInGame/<string:userID>/<string:gameID>')
+def isUserInGame(userID=None, gameID=None):
+    global df_users
+    user = df_users[df_users['id'] == userID]
+
+    if len(user) == 0:
+        return "no"
+
+    userGames = user['games'].values[0]
+    if CheckIfUserInGame(userGames, gameID):
+        return "yes"
+    else:
+        return "no"
+
 
 def filterByGame(df, gameID):
     if len(gameID) != 0:

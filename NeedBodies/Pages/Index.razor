@@ -30,7 +30,7 @@
                     <TableHeaderCell>Time</TableHeaderCell>
                     <TableHeaderCell>Players</TableHeaderCell>
                     <TableHeaderCell>Goalies</TableHeaderCell>
-                    <TableHeaderCell></TableHeaderCell>
+                    <TableHeaderCell>Drop in</TableHeaderCell>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -54,8 +54,24 @@
                             <TableRowCell>@time</TableRowCell>
                             <TableRowCell>@players</TableRowCell>
                             <TableRowCell>@goalies</TableRowCell>
+                            <TableRowCell>
+                                @if (currentUser != null)
+                                {
+                                    if (game.GetPlayers(userService).Contains(currentUser) || game.GetGoalies(userService).Contains(currentUser))
+                                    {
+                                        <Button Color="Color.Secondary" Outline>Already in Game</Button>
+                                    }
+                                    else
+                                    {
+                                        <Button Color="Color.Primary" Clicked="@(e => SetDropInGame(@game))" Outline>Drop in</Button>
+                                    }
 
-                            <Button Color="Color.Primary" Clicked="@(e => SetDropInGame(@game))" Outline>Drop in</Button>
+                                }
+                                else
+                                {
+                                    <Button Color="Color.Secondary" Outline>Login/sign up to drop in</Button>
+                                    }
+                            </TableRowCell>
                         </TableRow>
                     }
                 }
@@ -98,6 +114,7 @@
             string currentUserID = userSession.Value.ID;
             currentUser = userService.GetByID(currentUserID);
         }
+        await InvokeAsync(() => StateHasChanged());
     }
 
     }
