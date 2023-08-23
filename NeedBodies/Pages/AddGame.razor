@@ -9,59 +9,80 @@
 
 <AuthorizeView>
     <Authorized>
-        <Fields>
-            <Field>
-                <TextEdit Placeholder="Host display name" @bind-Text="@strHost"></TextEdit>
-            </Field>
-            <Field>
-                <FieldHelp>Select date</FieldHelp>
-                <DateEdit TValue="DateTime?" @bind-Date="@selectedDate"></DateEdit>
-            </Field>
-            <Field>
-                <FieldHelp>Select time</FieldHelp>
-                <TimeEdit TValue="TimeSpan?" @bind-Time="@selectedTime"></TimeEdit>
-            </Field>
-            <Field>
-                <FieldHelp>Select location</FieldHelp>
-                @if (Locations == null)
-                {
-                    <p><em>Loading...</em></p>
-                }
-                else
-                {
-                    <Select TValue="string" @bind-SelectedValue="@strLocation">
-                        @foreach (var location in Locations)
-                        {
-                            var loc = location;
-                            <SelectItem Value="loc.Name">@loc.Name</SelectItem>
-                        }
-                    </Select>
-                }
+        <Row>
+            <Column>
+                <Card Margin="Margin.Is4.OnY">
+                    <CardHeader>
+                        <CardTitle>Add game</CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Host display name</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <TextEdit Placeholder="This is what will display under 'host' on main page" @bind-Text="@strHost"></TextEdit>
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Date</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <DateEdit TValue="DateTime?" @bind-Date="@selectedDate"></DateEdit>
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Time</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <TimeEdit TValue="TimeSpan?" @bind-Time="@selectedTime"></TimeEdit>
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Location</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                @if (Locations == null)
+                                {
+                                    <p><em>Loading...</em></p>
+                                }
+                                else
+                                {
+                                    <Select TValue="string" @bind-SelectedValue="@strLocation">
+                                        @foreach (var location in Locations)
+                                        {
+                                            var loc = location;
+                                            <SelectItem Value="loc.Name">@loc.Name</SelectItem>
+                                        }
+                                    </Select>
+                                }
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Player limit</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <Select TValue="int" @bind-SelectedValue="@intPlayerLim">
+                                    @for (int i = 1; i <= 100; i++)
+                                    {
+                                        var count = i;
+                                        <SelectItem Value="@count">@count</SelectItem>
+                                    }
+                                </Select>
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Goalie limit</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <Select TValue="int" @bind-SelectedValue="@intGoalieLim">
+                                    @for (int i = 1; i <= 40; i++)
+                                    {
+                                        var count = i;
+                                        <SelectItem Value="@count">@count</SelectItem>
+                                    }
+                                </Select>
+                            </FieldBody>
+                        </Field>
 
-            </Field>
-            <Field>
-                <FieldHelp>Set player limit</FieldHelp>
-                <Select TValue="int" @bind-SelectedValue="@intPlayerLim">
-                    @for (int i = 1; i <= 100; i++)
-                    {
-                        var count = i;
-                        <SelectItem Value="@count">@count</SelectItem>
-                    }
-                </Select>
-            </Field>
-            <Field>
-                <FieldHelp>Set goalie limit</FieldHelp>
-                <Select TValue="int" @bind-SelectedValue="@intGoalieLim">
-                    @for (int i = 1; i <= 40; i++)
-                    {
-                        var count = i;
-                        <SelectItem Value="@count">@count</SelectItem>
-                    }
-                </Select>
-            </Field>
-
-            <Button Color="Color.Primary" Clicked="@AddGameAsync">Add game</Button>
-        </Fields>
+                        <Button Color="Color.Primary" Clicked="@AddGameAsync">Add game</Button>
+                    </CardBody>
+                </Card>
+            </Column>
+        </Row>
     </Authorized>
     <NotAuthorized>
         Login to add a game

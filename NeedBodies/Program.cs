@@ -44,8 +44,6 @@ builder.Services.AddSingleton(sp =>
     return service;
 });
 
-builder.Services.AddSingleton<WeatherForecastService>();
-
 builder.Services.AddServerSideBlazor();
 
 var app = builder.Build();
