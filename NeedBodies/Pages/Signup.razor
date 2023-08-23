@@ -7,43 +7,47 @@
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider authStateProvider
 
-<Row>
-    <Column>
-        <Card Margin="Margin.Is4.OnY">
-            <CardHeader>
-                <CardTitle>Sign up</CardTitle>
-            </CardHeader>
-            <CardBody>
-                <Field Horizontal>
-                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Name</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                        <TextEdit Role="TextRole.Text" Placeholder="Name" @bind-Text="@strName" />
-                    </FieldBody>
-                </Field>
-                <Field Horizontal>
-                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Email</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                        <TextEdit Role="TextRole.Email" Placeholder="Email" @bind-Text="@strEmail" />
-                    </FieldBody>
-                </Field>
-                <Field Horizontal>
-                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Phone</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                        <TextEdit Role="TextRole.Telephone" Placeholder="Phone" @bind-Text="@strPhone" />
-                    </FieldBody>
-                </Field>
-                <Field Horizontal>
-                    <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Password</FieldLabel>
-                    <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                        <TextEdit Role="TextRole.Password" Placeholder="Password" @bind-Text="@strPassword" />
-                    </FieldBody>
-                </Field>
+<AuthorizeView>
+    <NotAuthorized>
+        <Row>
+            <Column>
+                <Card Margin="Margin.Is4.OnY">
+                    <CardHeader>
+                        <CardTitle>Sign up</CardTitle>
+                    </CardHeader>
+                    <CardBody>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Name</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <TextEdit Role="TextRole.Text" Placeholder="Name" @bind-Text="@strName" />
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Email</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <TextEdit Role="TextRole.Email" Placeholder="Email" @bind-Text="@strEmail" />
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Phone</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <TextEdit Role="TextRole.Telephone" Placeholder="Phone" @bind-Text="@strPhone" />
+                            </FieldBody>
+                        </Field>
+                        <Field Horizontal>
+                            <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Password</FieldLabel>
+                            <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
+                                <TextEdit Role="TextRole.Password" Placeholder="Password" @bind-Text="@strPassword" />
+                            </FieldBody>
+                        </Field>
 
-                <Button Color="Color.Primary" Clicked="@SignUpUserAsync">Sign up</Button>
-            </CardBody>
-        </Card>
-    </Column>
-</Row>
+                        <Button Color="Color.Primary" Clicked="@SignUpUserAsync">Sign up</Button>
+                    </CardBody>
+                </Card>
+            </Column>
+        </Row>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     string? strName { get; set; }

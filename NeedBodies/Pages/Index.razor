@@ -84,6 +84,8 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender == false) return;
+
         var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
         if (userSession.Success)
         {

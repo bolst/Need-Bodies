@@ -65,6 +65,7 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
+        if (firstRender == false) return;
         ModalRef.Show();
     }
 
