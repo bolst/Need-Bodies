@@ -409,3 +409,6 @@ checkuser.py
 sendgame.py
 senduser.py
 sendusertogame.py
+
+# ngrok file so I remember the command lol
+ngrok.md

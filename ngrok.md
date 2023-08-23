@@ -1,1 +1,0 @@
-./ngrok http --domain=personally-more-dove.ngrok-free.app https://localhost:7041

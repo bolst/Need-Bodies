@@ -5,6 +5,7 @@ Need Bodies is a web app designed to help people find/host pickup hockey games i
 Built using .NET Core, C#, Blazor, Python (Flask).
 
 ## TODO:
+- Use an actual database instead of excel files
 - Add ability to edit profile
 - Give admin privileges to users with admin role
 - Figure out why TopMenu won't push some items all the way right
