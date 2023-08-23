@@ -116,6 +116,19 @@ namespace NeedBodies.Data
 		{
 			public string password { get; set; }
 		}
+
+        private class JSONEmailPassword
+        {
+            public string email { get; set; }
+            public string password { get; set; }
+        }
+
+        private class JSONDateTimeLocation
+        {
+            public string date { get; set; }
+            public string time { get; set; }
+            public string location { get; set; }
+        }
     }
 }
 
