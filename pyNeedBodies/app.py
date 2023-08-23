@@ -161,7 +161,8 @@ def addGame(hostID=None, host=None, playerLim=None, goalieLim=None):
     writeData(df_users, 'users.xlsx')
 
     #return df_games.to_json(orient='records')
-    return jsonify(new_entry[0])
+    #return jsonify(new_entry[0])
+    return 'success'
 
 @app.route('/removeGame/<string:gameID>')
 def removeGame(gameID=None):
@@ -198,7 +199,14 @@ def addUser(name=None, phone=None):
 
     errorMsg = verifyUser(new_entry)
     if errorMsg != None:
-        return errorMsg
+        return {"id": "  ",
+                 "name":"  ",
+                 "email":"  ",
+                 "phone":"  ",
+                 "password":"  ",
+                 "games":errorMsg,
+                 "hosted games":"  ",
+                 "role":"  "}
 
     df_users = pd.concat([myUsers, pd.DataFrame.from_records(new_entry)], ignore_index=True)
 
@@ -361,12 +369,12 @@ def formatDateTime(date, time):
     return date, time
 
 def generateID(ids=None) -> str:
-    filtered_ids = [i for i in ids if len(str(i)) != 0]
+    filtered_ids = [int(i) for i in ids if len(str(i)) != 0]
 
     if len(filtered_ids) == 0:
         return 0
     else:
-        return str(int(max(filtered_ids)) + 1)
+        return str(max(filtered_ids) + 1)
 
 def verifyUser(data):
     global df_users

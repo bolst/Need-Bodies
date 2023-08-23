@@ -57,52 +57,36 @@
 
     public async Task SignUpUserAsync()
     {
-        HttpClient client = new HttpClient();
-
-        JSONEmailPassword emailPassword = new JSONEmailPassword
-        {
-            email = strEmail,
-            password = strPassword
-        };
-
-        var response = await client.PostAsJsonAsync<JSONEmailPassword>($"{Utilities.HttpAddress}/addUser/{strName}/{strPhone}", emailPassword);
         User newUser = null;
         string message = null;
 
         try
         {
-            newUser = await response.Content.ReadFromJsonAsync<User>();
+            newUser = await Utilities.AddUser(strName, strPhone, strEmail, strPassword);
         }
         catch(Exception exc)
         {
-            try
-            {
-                message = await response.Content.ReadAsStringAsync();
-            }
-            catch { }
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
         }
 
-        if (newUser != null)
+        if (newUser.Games != "")
         {
-            userService.addUser(newUser);
-            var userAuthStateProvider = (UserAuthenticationStateProvider)authStateProvider;
-            await userAuthStateProvider.UpdateAuthenticationState(new UserSession
-            {
-                Name = newUser.Name,
-                Role = newUser.Role,
-                ID = newUser.ID
-            });
+            // display message
+            await js.InvokeVoidAsync("alert", newUser.Games);
+            return;
+        }
 
-            navManager.NavigateTo("/", true);
-        }
-        else if (message != null)
+        userService.addUser(newUser);
+        var userAuthStateProvider = (UserAuthenticationStateProvider)authStateProvider;
+        await userAuthStateProvider.UpdateAuthenticationState(new UserSession
         {
-            await js.InvokeVoidAsync("alert", message);
-        }
-        else // something went wrong in GET
-        {
-            await js.InvokeVoidAsync("alert", "Something went wrong");
-        }
+            Name = newUser.Name,
+            Role = newUser.Role,
+            ID = newUser.ID
+        });
+
+        navManager.NavigateTo("/", true);
     }
 }
 

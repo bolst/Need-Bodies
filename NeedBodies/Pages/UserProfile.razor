@@ -6,6 +6,7 @@
 @inject ProtectedSessionStorage protectedSessionStorage
 @inject UserService userService
 @inject NavigationManager navManager
+@inject IJSRuntime js
 @inherits LayoutComponentBase
 
 <AuthorizeView>
@@ -118,23 +119,23 @@
             userID = requestedUserID;
         }
 
-        HttpClient client = new HttpClient();
-
         if (userID == String.Empty)
         {
             userID = currentUserID;
         }
         user = userService.GetByID(userID);
 
-        RegisteredGames = await client.GetFromJsonAsync<List<Game>>(Utilities.HttpAddress + $"/getUserGames/{userID}");
-        HostedGames = await client.GetFromJsonAsync<List<Game>>(Utilities.HttpAddress + $"/getUserHostedGames/{userID}");
-
-        if (RegisteredGames.Count == 0)
+        try
         {
-            // no user found
-            await InvokeAsync(() => StateHasChanged());
+            RegisteredGames = await Utilities.GetUserGames(userID);
+            HostedGames = await Utilities.GetUserHostedGames(userID);
+        }
+        catch (Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
             return;
         }
+
         await InvokeAsync(() => StateHasChanged());
         return;
     }
@@ -147,8 +148,18 @@
 
     protected async Task RemoveFromGame()
     {
-        HttpClient client = new HttpClient();
-        var response = await client.GetStringAsync(Utilities.HttpAddress + $"/removeUserFromGame/{currentUserID}/{selectedGameID}");
+        string response = String.Empty;
+        try
+        {
+
+            response = await Utilities.RemoveUserFromGame(currentUserID, selectedGameID);
+
+        }
+        catch (Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
+        }
 
         if (response == "success")
         {
@@ -156,15 +167,24 @@
         }
         else
         {
-            // show message
+            await js.InvokeVoidAsync("alert", response);
+
         }
         return;
     }
 
     protected async Task RemoveHostedGame()
     {
-        HttpClient client = new HttpClient();
-        var response = await client.GetStringAsync(Utilities.HttpAddress + $"/removeGame/{selectedGameID}");
+        string response = String.Empty;
+        try
+        {
+            response = await Utilities.RemoveGame(selectedGameID);
+        }
+        catch(Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
+        }
 
         if (response == "success")
         {
@@ -172,7 +192,7 @@
         }
         else
         {
-            //show message
+            await js.InvokeVoidAsync("alert", response);
         }
         return;
     }

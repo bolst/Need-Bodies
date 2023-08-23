@@ -6,6 +6,7 @@
 @inject UserService userService
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager navManager
+@inject IJSRuntime js
 
 <PageTitle>Need Bodies</PageTitle>
 
@@ -76,10 +77,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        HttpClient client = new HttpClient();
-        HttpResponseMessage response = await client.GetAsync(Utilities.HttpAddress + "/games");
-
-        Games = await response.Content.ReadFromJsonAsync<List<Game>>();
+        try
+        {
+            Games = await Utilities.GetGames();
+        }
+        catch(Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

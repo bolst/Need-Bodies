@@ -6,6 +6,7 @@
 @inject UserService userService
 @inject ProtectedSessionStorage protectedSessionStorage
 @inject NavigationManager navManager
+@inject IJSRuntime js
 
 <AuthorizeView>
     <Authorized>
@@ -110,30 +111,25 @@
             strHost = authState.User.Identity.Name;
         }
 
-        // get locations
-        HttpClient client = new HttpClient();
-        HttpResponseMessage response = await client.GetAsync(Utilities.HttpAddress + "/arenas");
-
-        Locations = await response.Content.ReadFromJsonAsync<List<Location>>();
+        try
+        {
+            Locations = await Utilities.GetArenas();
+        }
+        catch(Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
+        }
     }
 
     public async Task AddGameAsync()
     {
-        HttpClient client = new HttpClient();
-
         if (selectedDate == null || selectedTime == null)
         {
             return;
         }
         string strDate = selectedDate.Value.ToString("yyyyMMdd");
         string strTime = new DateTime(selectedTime.Value.Ticks).ToString("HHmm");
-
-        JSONDateTimeLocation dateTimeLocation = new JSONDateTimeLocation
-        {
-            date = strDate,
-            time = strTime,
-            location = strLocation
-        };
 
         var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
         if (!userSession.Success)
@@ -145,12 +141,17 @@
         User host = userService.GetByID(currentUserID);
         string strHostID = host.ID;
 
-        var response = await client.PostAsJsonAsync<JSONDateTimeLocation>($"{Utilities.HttpAddress}/addGame/{strHostID}/{strHost}/{intPlayerLim}/{intGoalieLim}", dateTimeLocation);
-        Game game = null;
-        string message = null;
-
+        try
+        {
+            string message = await Utilities.AddGame(strHostID, strHost, intPlayerLim, intGoalieLim, strDate, strTime, strLocation);
+        }
+        catch(Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
+        }
         navManager.NavigateTo("/");
     }
 
-}
+    }
 

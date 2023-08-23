@@ -6,6 +6,7 @@
 @inject ProtectedSessionStorage protectedSessionStorage
 @inject UserService userService
 @inject NavigationManager navManager
+@inject IJSRuntime js
 @inherits LayoutComponentBase
 
 @if (game != null)
@@ -98,9 +99,16 @@ else
             gameID = requestedGameID;
         }
 
-        HttpClient client = new HttpClient();
-        var gameAsList = await client.GetFromJsonAsync<List<Game>>($"{Utilities.HttpAddress}/games?gameID={gameID}");
-        game = gameAsList[0];
+        try
+        {
+            List<Game> gameAsList = await Utilities.GetGames(gameID);
+            game = gameAsList[0];
+        }
+        catch(Exception exc)
+        {
+            await js.InvokeVoidAsync("alert", exc.ToString());
+            return;
+        }
     }
 
     protected void ViewUser()
