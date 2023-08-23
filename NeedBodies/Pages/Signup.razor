@@ -1,7 +1,9 @@
 ﻿@page "/signup"
 
+@using System.Text.RegularExpressions
 @using NeedBodies.Data
 @using NeedBodies.Auth
+@using PhoneNumbers
 @inject UserService userService
 @inject IJSRuntime js
 @inject NavigationManager navManager
@@ -19,25 +21,41 @@
                         <Field Horizontal>
                             <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Name</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <TextEdit Role="TextRole.Text" Placeholder="Name" @bind-Text="@strName" />
+                                <Validation Validator="ValidationRule.IsNotEmpty">
+                                    <TextEdit Role="TextRole.Text" Placeholder="Name" @bind-Text="@strName">
+                                        <Feedback><ValidationError>This can't be empty</ValidationError></Feedback>
+                                    </TextEdit>
+                                </Validation>
                             </FieldBody>
                         </Field>
                         <Field Horizontal>
                             <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Email</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <TextEdit Role="TextRole.Email" Placeholder="Email" @bind-Text="@strEmail" />
+                                <Validation Validator="ValidationRule.IsEmail">
+                                    <TextEdit Role="TextRole.Email" Placeholder="Email" @bind-Text="@strEmail">
+                                        <Feedback><ValidationError>Enter a valid email</ValidationError></Feedback>
+                                    </TextEdit>
+                                </Validation>
                             </FieldBody>
                         </Field>
                         <Field Horizontal>
                             <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Phone</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <TextEdit Role="TextRole.Telephone" Placeholder="Phone" @bind-Text="@strPhone" />
+                                <Validation Validator="ValidatePhone">
+                                    <TextEdit Role="TextRole.Telephone" Placeholder="Phone" @bind-Text="@strPhone">
+                                        <Feedback><ValidationError>Enter a valid phone number</ValidationError></Feedback>
+                                    </TextEdit>
+                                </Validation>
                             </FieldBody>
                         </Field>
                         <Field Horizontal>
                             <FieldLabel ColumnSize="ColumnSize.IsFull.OnTablet.Is2.OnDesktop">Password</FieldLabel>
                             <FieldBody ColumnSize="ColumnSize.IsFull.OnTablet.Is10.OnDesktop">
-                                <TextEdit Role="TextRole.Password" Placeholder="Password" @bind-Text="@strPassword" />
+                                <Validation Validator="ValidatePassword">
+                                    <TextEdit Role="TextRole.Password" Placeholder="Password" @bind-Text="@strPassword">
+                                        <Feedback><ValidationError>Password must contain at least 8 characters, an uppercase, lowercase, number, and special character.</ValidationError></Feedback>
+                                    </TextEdit>
+                                </Validation>
                             </FieldBody>
                         </Field>
 
@@ -54,6 +72,42 @@
     string? strEmail { get; set; }
     string? strPhone { get; set; }
     string? strPassword { get; set; }
+
+    void ValidatePhone(ValidatorEventArgs e)
+    {
+        try
+        {
+            var phoneUtil = PhoneNumbers.PhoneNumberUtil.GetInstance();
+            string myPhone = Convert.ToString(e.Value);
+            PhoneNumber phoneNumber = phoneUtil.Parse(myPhone, "CA");
+            if (phoneUtil.IsValidNumber(phoneNumber))
+            {
+                e.Status = ValidationStatus.Success;
+            }
+            else
+            {
+                e.Status = ValidationStatus.Error;
+            }
+        }
+        catch
+        {
+            e.Status = ValidationStatus.Error;
+        }
+    }
+
+    void ValidatePassword(ValidatorEventArgs e)
+    {
+        string myPassword = Convert.ToString(e.Value);
+
+        if (Regex.IsMatch(myPassword, "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"))
+        {
+            e.Status = ValidationStatus.Success;
+        }
+        else
+        {
+            e.Status = ValidationStatus.Error;
+        }
+    }
 
     public async Task SignUpUserAsync()
     {
@@ -88,5 +142,5 @@
 
         navManager.NavigateTo("/", true);
     }
-}
+    }
 
