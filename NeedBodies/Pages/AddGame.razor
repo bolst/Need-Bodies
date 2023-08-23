@@ -96,95 +96,100 @@
 
 @code {
 
-    Validations validations;
+            Validations validations;
 
-    string strHost { get; set; }
+            string strHost { get; set; }
 
-    DateTime? selectedDate { get; set; }
-    TimeSpan? selectedTime { get; set; }
+            DateTime? selectedDate { get; set; }
+            TimeSpan? selectedTime { get; set; }
 
-    List<Location> Locations { get; set; }
-    string strLocation { get; set; }
+            List<Location> Locations { get; set; }
+            string strLocation { get; set; }
 
-    int intPlayerLim { get; set; }
-    int intGoalieLim { get; set; }
+            int intPlayerLim { get; set; }
+            int intGoalieLim { get; set; }
 
-    private bool ValidateDate()
-    {
-        return selectedDate > DateTime.Now;
-    }
+            private bool ValidateDate()
+            {
+                return selectedDate > DateTime.Now;
+            }
 
-    private bool ValidateLocation()
-    {
-        return Locations.Any(location => location.Name == strLocation);
-    }
+            private bool ValidateLocation()
+            {
+                return Locations.Any(location => location.Name == strLocation);
+            }
 
-    private bool ValidatePlayerLimit()
-    {
-        return intPlayerLim >= 1 && intPlayerLim <= NeedBodies.Data.Utilities.playerLimit;
-    }
+            private bool ValidatePlayerLimit()
+            {
+                return intPlayerLim >= 1 && intPlayerLim <= NeedBodies.Data.Utilities.playerLimit;
+            }
 
-    private bool ValidateGoalieLimit()
-    {
-        return intGoalieLim >= 1 && intGoalieLim <= NeedBodies.Data.Utilities.goalieLimit;
-    }
+            private bool ValidateGoalieLimit()
+            {
+                return intGoalieLim >= 1 && intGoalieLim <= NeedBodies.Data.Utilities.goalieLimit;
+            }
 
-    private async Task<bool> ValidateAll()
-    {
-        return await validations.ValidateAll()
-            && ValidateDate()
-            && ValidateLocation()
-            && ValidatePlayerLimit()
-            && ValidateGoalieLimit();
-    }
+            private async Task<bool> ValidateAll()
+            {
+                return await validations.ValidateAll()
+                    && ValidateDate()
+                    && ValidateLocation()
+                    && ValidatePlayerLimit()
+                    && ValidateGoalieLimit();
+            }
 
     protected override async Task OnInitializedAsync()
-    {
-        var authState = await authStateProvider.GetAuthenticationStateAsync();
-        if (authState != null)
         {
-            strHost = authState.User.Identity.Name;
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            if (authState != null)
+            {
+                strHost = authState.User.Identity.Name;
+            }
+
+            try
+            {
+                Locations = await Utilities.GetArenas();
+            }
+            catch(Exception exc)
+            {
+                await js.InvokeVoidAsync("alert", exc.ToString());
+                return;
+            }
         }
 
-        try
+        public async Task AddGameAsync()
         {
-            Locations = await Utilities.GetArenas();
-        }
-        catch(Exception exc)
-        {
-            await js.InvokeVoidAsync("alert", exc.ToString());
-            return;
-        }
-    }
+            if (!await ValidateAll())
+            {
+                // TODO: configure snackbar to validation requirements
+                return;
+            }
 
-    public async Task AddGameAsync()
-    {
-        if (!await ValidateAll()) return;
 
-        string strDate = selectedDate.Value.ToString("yyyyMMdd");
-        string strTime = new DateTime(selectedTime.Value.Ticks).ToString("HHmm");
+            string strDate = selectedDate.Value.ToString("yyyyMMdd");
+            string strTime = new DateTime(selectedTime.Value.Ticks).ToString("HHmm");
 
-        var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
-        if (!userSession.Success)
-        {
-            return;
+            var userSession = await protectedSessionStorage.GetAsync<UserSession>("UserSession");
+            if (!userSession.Success)
+            {
+                return;
+            }
+            string currentUserID = userSession.Value.ID;
+
+            User host = userService.GetByID(currentUserID);
+            string strHostID = host.ID;
+
+            try
+            {
+                string message = await Utilities.AddGame(strHostID, strHost, intPlayerLim, intGoalieLim, strDate, strTime, strLocation);
+            }
+            catch(Exception exc)
+            {
+                await js.InvokeVoidAsync("alert", exc.ToString());
+                return;
+            }
+            navManager.NavigateTo("/");
         }
-        string currentUserID = userSession.Value.ID;
-
-        User host = userService.GetByID(currentUserID);
-        string strHostID = host.ID;
-
-        try
-        {
-            string message = await Utilities.AddGame(strHostID, strHost, intPlayerLim, intGoalieLim, strDate, strTime, strLocation);
-        }
-        catch(Exception exc)
-        {
-            await js.InvokeVoidAsync("alert", exc.ToString());
-            return;
-        }
-        navManager.NavigateTo("/");
-    }
 
     }
 

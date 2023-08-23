@@ -7,6 +7,7 @@ import json
 from markupsafe import escape_silent
 from datetime import datetime
 import time
+from PasswordManager import PasswordManager
 
 app = Flask(__name__)
 
@@ -51,10 +52,19 @@ def readUserData():
                                    'name',
                                    'email',
                                    'phone',
-                                   'password',
                                    'games',
                                    'hosted games',
                                    'role'])
+    return df
+
+def readHashData():
+    path = dir_path + '/userhash.xlsx'
+    if os.path.exists(path):
+        df = pd.read_excel(dir_path + '/userhash.xlsx')
+    else:
+        df = pd.DataFrame(columns=['id',
+                                   'salt',
+                                   'hash'])
     return df
 
 def writeData(df, fileName):
@@ -63,6 +73,7 @@ def writeData(df, fileName):
 df_arenas = readArenaData()
 df_games = readGameData()
 df_users = readUserData()
+df_hash = readHashData()
 
 @app.route('/arenas')
 def getArenas():
@@ -121,7 +132,6 @@ def getUsers():
     myUsers = filterByGame(myUsers, gameID)
     myUsers['id'] = myUsers['id'].astype(str)
     myUsers['phone'] = myUsers['phone'].astype(str)
-    myUsers['password'] = myUsers['password'].astype(str)
 
     return myUsers.to_json(orient='records')
 
@@ -180,6 +190,7 @@ def removeGame(gameID=None):
 @app.route('/addUser/<string:name>/<string:phone>', methods=['POST'])
 def addUser(name=None, phone=None):
     global df_users
+    global df_hash
     myUsers = df_users.copy()
     userRequestInfo = request.json
     email = userRequestInfo['email']
@@ -191,29 +202,64 @@ def addUser(name=None, phone=None):
         'name': name,
         'email': email,
         'phone': str(phone),
-        'password': str(password),
         'games': '',
         'hosted games': '',
         'role': 'user'
     }]
 
-    errorMsg = verifyUser(new_entry)
+    errorMsg = CheckIfEmailPhoneUsed(new_entry)
     if errorMsg != None:
         return {"id": "  ",
                  "name":"  ",
                  "email":"  ",
                  "phone":"  ",
-                 "password":"  ",
                  "games":errorMsg,
                  "hosted games":"  ",
                  "role":"  "}
 
     df_users = pd.concat([myUsers, pd.DataFrame.from_records(new_entry)], ignore_index=True)
-
     writeData(df_users, 'users.xlsx')
+
+    # ------ hash password ------
+    pwd = PasswordManager(password)
+    hashJson = pwd.ToJson(userID)
+    new_entry_hash = [{
+        'id': str(userID),
+        'salt': hashJson['salt'].decode('utf-8'),
+        'hash': hashJson['hash'].decode('utf-8')
+    }]
+
+    df_hash = pd.concat([df_hash, pd.DataFrame.from_records(new_entry_hash)], ignore_index=True)
+    writeData(df_hash, 'userhash.xlsx')
 
     #return df_users.to_json(orient='records')
     return jsonify(new_entry[0])
+
+@app.route('/checkUser/<string:userID>', methods=['POST'])
+def checkUser(userID=None):
+    global df_users
+    global df_hash
+    df_users['id'] = df_users['id'].astype(str)
+    df_hash['id'] = df_hash['id'].astype(str)
+    df_hash['hash'] = df_hash['hash'].astype(str)
+
+    userRequestInfo = request.json
+    password = userRequestInfo['password']
+
+    user = df_users[df_users['id'] == userID]
+    if len(user) == 0:
+        return "error: no user found"
+    
+    userHash = df_hash[df_hash['id'] == userID]
+    if len(userHash) == 0:
+        return "error: no hash found"
+    
+    pwd = PasswordManager(password)
+    if pwd.checkPassword(password, userHash['hash'].values[0].encode('utf-8')):
+        return "success"
+    else:
+        return "wrong password"
+    
 
 @app.route('/addUserToGame/<string:userID>/<string:gameID>/<string:isGoalie>')
 def addUserToGame(userID=None, gameID=None, isGoalie=None):
@@ -390,7 +436,7 @@ def generateID(ids=None) -> str:
     else:
         return str(max(filtered_ids) + 1)
 
-def verifyUser(data):
+def CheckIfEmailPhoneUsed(data):
     global df_users
     if len(df_users[df_users['email'] == data[0]['email']]) != 0:
         return "email already exists"

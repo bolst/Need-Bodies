@@ -1,6 +1,6 @@
 ﻿@page "/login"
 
-@using NeedBodies.Auth;
+@using NeedBodies.Auth
 @inject UserService userService
 @inject IJSRuntime js
 @inject AuthenticationStateProvider authStateProvider
@@ -43,9 +43,10 @@
 
         private async Task AuthenticateUserAsync()
         {
+            
             var user = userService.GetByEmail(strEmail);
 
-            if (user == null || user.Password != strPassword)
+            if (user == null || await user.CheckPassword(strPassword) != "success")
             {
                 await js.InvokeVoidAsync("alert", "Invalid name/password");
                 return;
@@ -60,6 +61,7 @@
             });
 
             navManager.NavigateTo("/", true);
+            
         }
 
     }

@@ -96,6 +96,26 @@ namespace NeedBodies.Data
 			string response = await client.GetStringAsync(Utilities.httpAddress + $"/isUserInGame/{userID}/{gameID}");
 			return response == "yes";
         }
+
+		public static async Task<string> CheckUserCredentials(string userID, string password)
+		{
+
+            HttpClient client = new HttpClient();
+
+            JSONPassword jsonPassword = new JSONPassword
+            {
+                password = password
+            };
+
+            var response = await client.PostAsJsonAsync<JSONPassword>($"{Utilities.httpAddress}/checkUser/{userID}", jsonPassword);
+			return await response.Content.ReadAsStringAsync();
+        }
+
+
+		private class JSONPassword
+		{
+			public string password { get; set; }
+		}
     }
 }
 

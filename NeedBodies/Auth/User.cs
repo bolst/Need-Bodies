@@ -5,6 +5,7 @@ namespace NeedBodies.Auth
 {
     public class User
     {
+
         [JsonPropertyName("id")]
         public string ID { get; set; }
 
@@ -17,9 +18,6 @@ namespace NeedBodies.Auth
         [JsonPropertyName("phone")]
         public string Phone { get; set; }
 
-        [JsonPropertyName("password")]
-        public string Password { get; set; }
-
         [JsonPropertyName("games")]
         public string Games { get; set; }
 
@@ -28,5 +26,11 @@ namespace NeedBodies.Auth
 
         [JsonPropertyName("role")]
         public string Role { get; set; }
+        
+        public async Task<string> CheckPassword(string attempt)
+        {
+            return await Utilities.CheckUserCredentials(this.ID, attempt);
+        }
+        
     }
 }
