@@ -1,2 +1,2 @@
 *.html linguist-detectable=false
-*.razor linguist-detectable=true
+*.razor linguist-detectable=false
