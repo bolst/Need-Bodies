@@ -8,7 +8,7 @@
 
     <AuthorizeView>
         <NotAuthorized>
-            <Row>
+            <Container Fluid Width="Width.Is50" >
                 <Column>
                     <Card Margin="Margin.Is4.OnY">
                         <CardHeader>
@@ -28,11 +28,15 @@
                                 </FieldBody>
                             </Field>
 
-                            <Button Color="Color.Primary" Clicked="AuthenticateUserAsync">Log in</Button>
+                            <Button Color="Color.Primary" Clicked="AuthenticateUserAsync" Loading="@isLoading">Log in</Button>
+
+                            <Div>
+                                <Link To="/forgot" Margin="Margin.Is2.FromStart">Forgot password?</Link>
+                            </Div>
                         </CardBody>
                     </Card>
                 </Column>
-            </Row>
+            </Container>
         </NotAuthorized>
 
     </AuthorizeView>
@@ -41,14 +45,19 @@
         private string? strEmail { get; set; }
         private string? strPassword { get; set; }
 
+        private bool isLoading = false;
+
         private async Task AuthenticateUserAsync()
         {
-            
+
+            isLoading = true;
+
             var user = userService.GetByEmail(strEmail);
 
             if (user == null || await user.CheckPassword(strPassword) != "success")
             {
                 await js.InvokeVoidAsync("alert", "Invalid name/password");
+                isLoading = false;
                 return;
             }
 
@@ -60,8 +69,9 @@
                 ID = user.ID
             });
 
+            isLoading = false;
             navManager.NavigateTo("/", true);
-            
+
         }
 
     }

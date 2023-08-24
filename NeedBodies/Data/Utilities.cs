@@ -1,4 +1,6 @@
 ﻿using NeedBodies.Auth;
+using System.Net;
+using System.Net.Mail;
 namespace NeedBodies.Data
 {
 	public static class Utilities
@@ -6,6 +8,7 @@ namespace NeedBodies.Data
 		public static readonly string brandName = "Need Bodies";
 		public static readonly string httpAddress = "http://127.0.0.1:5000";
 		public static readonly string passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+        public static readonly string SiteLink = "https://localhost:7041";
 		public static readonly int playerLimit = 100;
 		public static readonly int goalieLimit = 20;
 
@@ -111,11 +114,38 @@ namespace NeedBodies.Data
 			return await response.Content.ReadAsStringAsync();
         }
 
+        public static async Task<string> GetUserRID(string userID)
+        {
+            HttpClient client = new HttpClient();
+
+            return await client.GetStringAsync($"{Utilities.httpAddress}/getUserRID/{userID}");
+        }
+
+        public static async Task<string> ResetUserPassword(string userID, string myRID, string newPassword, UserService userService)
+        {
+            HttpClient client = new HttpClient();
+
+            JSONRIDPassword jsonRidPassword = new JSONRIDPassword
+            {
+                RID = myRID,
+                password = newPassword,
+            };
+
+            var response = await client.PostAsJsonAsync<JSONRIDPassword>($"{Utilities.httpAddress}/resetUserPassword/{userID}", jsonRidPassword);
+            return await response.Content.ReadAsStringAsync();
+        }
+
 
 		private class JSONPassword
 		{
 			public string password { get; set; }
 		}
+
+        private class JSONRIDPassword
+        {
+            public string RID { get; set; }
+            public string password { get; set; }
+        }
 
         private class JSONEmailPassword
         {
@@ -128,6 +158,67 @@ namespace NeedBodies.Data
             public string date { get; set; }
             public string time { get; set; }
             public string location { get; set; }
+        }
+
+        public class Email
+        {
+            private string BrandEmail { get; set; }
+            private string Password { get; set; }
+
+            public SmtpClient smtpClient { get; set; }
+
+            public Email() { }
+
+            public async Task Initialize()
+            {
+                HttpClient client = new HttpClient();
+                JSONEmailPassword jSONEmailPassword = await client.GetFromJsonAsync<JSONEmailPassword>($"{Utilities.httpAddress}/getEmailCredentials");
+                BrandEmail = jSONEmailPassword.email;
+                Password = jSONEmailPassword.password;
+
+                smtpClient = new SmtpClient("smtp.office365.com", 587)
+                {
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(BrandEmail, Password),
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    EnableSsl = true,
+                };
+            }
+
+            public async Task<string> SendForgotPassword(string emailTo, UserService userService)
+            {
+                User user = userService.GetByEmail(emailTo);
+                if (user == null)
+                {
+                    return $"An email with a password reset link has been sent to {emailTo} if it is registered.";
+                }
+
+                string userID = user.ID;
+                string RID = await Utilities.GetUserRID(userID);
+
+                string subject = $"{Utilities.brandName} Reset Password";
+
+                string body = $"<div><a href=\"{Utilities.SiteLink}/reset?UID={userID}&RID={RID}\">Click here</a> to reset your password for Need Bodies.</div>";
+
+                MailMessage mailMessage = new MailMessage
+                {
+                    From = new MailAddress(BrandEmail),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true,
+                };
+                mailMessage.To.Add(emailTo);
+
+                try
+                {
+                    smtpClient.Send(mailMessage);
+                    return $"An email with a password reset link has been sent to {emailTo} if it is registered.";
+                }
+                catch(Exception exc)
+                {
+                    return $"Error: {exc.ToString()}";
+                }
+            }
         }
     }
 }

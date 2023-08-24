@@ -27,7 +27,6 @@ builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<AuthenticationStateProvider, UserAuthenticationStateProvider>();
 
 // needed because async can't be in a constructor
-
 HttpClient client = new HttpClient();
 List<User> users;
 try

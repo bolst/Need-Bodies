@@ -11,7 +11,7 @@
 
 <AuthorizeView>
     <NotAuthorized>
-        <Row>
+        <Container Fluid Width="Width.Is50">
             <Column>
                 <Card Margin="Margin.Is4.OnY">
                     <CardHeader>
@@ -61,21 +61,23 @@
                             </Validation>
                         </Validations>
 
-                        <Button Color="Color.Primary" Clicked="@SignUpUserAsync">Sign up</Button>
+                        <Button Color="Color.Primary" Clicked="@SignUpUserAsync" Loading="@isLoading">Sign up</Button>
                     </CardBody>
                 </Card>
             </Column>
-        </Row>
+        </Container>
     </NotAuthorized>
 </AuthorizeView>
 
 @code {
-    string? strName { get; set; }
-    string? strEmail { get; set; }
-    string? strPhone { get; set; }
-    string? strPassword { get; set; }
+    public string? strName { get; set; }
+    public string? strEmail { get; set; }
+    public string? strPhone { get; set; }
+    public string? strPassword { get; set; }
 
-    Validations validations;
+    public bool isLoading = false;
+
+    public Validations validations;
 
     private void ValidatePhone(ValidatorEventArgs e)
     {
@@ -120,6 +122,8 @@
             return;
         }
 
+        isLoading = true;
+
         User newUser = null;
         string message = null;
 
@@ -130,6 +134,7 @@
         catch(Exception exc)
         {
             await js.InvokeVoidAsync("alert", exc.ToString());
+            isLoading = false;
             return;
         }
 
@@ -137,6 +142,7 @@
         {
             // display message
             await js.InvokeVoidAsync("alert", newUser.Games);
+            isLoading = false;
             return;
         }
 
@@ -149,6 +155,7 @@
             ID = newUser.ID
         });
 
+        isLoading = false;
         navManager.NavigateTo("/", true);
     }
     }

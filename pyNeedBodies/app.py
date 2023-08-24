@@ -1,12 +1,10 @@
 import os   
+import random
+import string
 from flask import Flask, render_template, jsonify, redirect, request
-import pytz
 import pandas as pd
 import numpy as np
-import json
 from markupsafe import escape_silent
-from datetime import datetime
-import time
 from PasswordManager import PasswordManager
 
 app = Flask(__name__)
@@ -64,7 +62,8 @@ def readHashData():
     else:
         df = pd.DataFrame(columns=['id',
                                    'salt',
-                                   'hash'])
+                                   'hash',
+                                   'RID'])
     return df
 
 def writeData(df, fileName):
@@ -226,7 +225,8 @@ def addUser(name=None, phone=None):
     new_entry_hash = [{
         'id': str(userID),
         'salt': hashJson['salt'].decode('utf-8'),
-        'hash': hashJson['hash'].decode('utf-8')
+        'hash': hashJson['hash'].decode('utf-8'),
+        'RID': ''.join(random.choice(string.ascii_uppercase) for i in range(30))
     }]
 
     df_hash = pd.concat([df_hash, pd.DataFrame.from_records(new_entry_hash)], ignore_index=True)
@@ -386,10 +386,58 @@ def getUserGames(userID=None):
     gamesUserIsIn['time'] = gamesUserIsIn['time'].astype(str)
     return gamesUserIsIn.to_json(orient='records')
 
+@app.route('/getUserRID/<string:userID>')
+def getUserRID(userID=None):
+    global df_hash
+    df_hash['id'] = df_hash['id'].astype(str)
+
+    user = df_hash[df_hash['id'] == userID]
+    if len(user) == 0:
+        return "Error: no user found"
+    
+    return user['RID'].values[0]
+
+@app.route('/resetUserPassword/<string:userID>', methods=['POST'])
+def resetUserPassword(userID=None):
+    global df_users
+    global df_hash
+    df_users['id'] = df_users['id'].astype(str)
+    df_hash['id'] = df_hash['id'].astype(str)
+
+    user = df_users[df_users['id'] == userID]
+    if len(user) == 0:
+        return "Error: no user found"
+    
+    userHash = df_hash[df_hash['id'] == userID]
+    if len(userHash) == 0:
+        return "Error: no hash found"
+    
+    userRequestInfo = request.json
+    password = userRequestInfo['password']
+    rid = userRequestInfo['RID']
+
+    if userHash['RID'].values[0] != rid:
+        return "Error: invalid RID"
+
+    pwd = PasswordManager(password)
+    hashJson = pwd.ToJson(userID)
+    df_hash.loc[df_hash['id'] == userID, 'salt'] = hashJson['salt'].decode('utf-8')
+    df_hash.loc[df_hash['id'] == userID, 'hash'] = hashJson['hash'].decode('utf-8')
+    df_hash.loc[df_hash['id'] == userID, 'RID'] = ''.join(random.choice(string.ascii_uppercase) for i in range(30))
+    writeData(df_hash, 'userhash.xlsx')
+
+    return "success"
+
 @app.route('/getUserHostedGames/<string:userID>')
 def getUserHostedGames(userID=None):
     global df_users
     global df_games
+    df_users['id'] = df_users['id'].astype(str)
+    df_games['id'] = df_games['id'].astype(str)
+    df_users['hosted games'] = df_users['hosted games'].astype(str)
+    df_games['player list'] = df_games['player list'].astype(str)
+    df_games['goalie list'] = df_games['goalie list'].astype(str)
+    
 
     user = df_users[df_users['id'] == userID]
     if len(user) == 0:
@@ -418,7 +466,12 @@ def isUserInGame(userID=None, gameID=None):
         return "yes"
     else:
         return "no"
-
+    
+@app.route('/getEmailCredentials')
+def getEmailCredentials():
+    email = 'needbodies@outlook.com'
+    password = 'Hockey12!'
+    return jsonify({'email': email, 'password': password})
 
 def filterByGame(df, gameID):
     if len(gameID) != 0:
