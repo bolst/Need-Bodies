@@ -3,19 +3,19 @@ using System.Net;
 using System.Net.Mail;
 namespace NeedBodies.Data
 {
-	public static class Utilities
-	{
-		public static readonly string brandName = "Need Bodies";
-		public static readonly string httpAddress = "http://127.0.0.1:5000";
-		public static readonly string passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
+    public static class Utilities
+    {
+        public static readonly string brandName = "Need Bodies";
+        public static readonly string httpAddress = "http://127.0.0.1:5000";
+        public static readonly string passwordRegex = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$";
         public static readonly string SiteLink = "https://localhost:7041";
-		public static readonly int playerLimit = 100;
-		public static readonly int goalieLimit = 20;
+        public static readonly int playerLimit = 100;
+        public static readonly int goalieLimit = 20;
 
 
         public static async Task<string> AddGame(string strHostID, string strHost, int intPlayerLim, int intGoalieLim, string strDate, string strTime, string strLocation)
-		{
-			HttpClient client = new HttpClient();
+        {
+            HttpClient client = new HttpClient();
 
             JSONDateTimeLocation dateTimeLocation = new JSONDateTimeLocation
             {
@@ -25,16 +25,16 @@ namespace NeedBodies.Data
             };
 
             var response = await client.PostAsJsonAsync<JSONDateTimeLocation>($"{Utilities.httpAddress}/addGame/{strHostID}/{strHost}/{intPlayerLim}/{intGoalieLim}", dateTimeLocation);
-			if (response.IsSuccessStatusCode)
-			{
-				return await response.Content.ReadAsStringAsync();
-			}
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
 
-			return String.Empty;
+            return String.Empty;
         }
 
-		public static async Task<User> AddUser(string strName, string strPhone, string strEmail, string strPassword)
-		{
+        public static async Task<User> AddUser(string strName, string strPhone, string strEmail, string strPassword)
+        {
             HttpClient client = new HttpClient();
 
             JSONEmailPassword emailPassword = new JSONEmailPassword
@@ -44,64 +44,64 @@ namespace NeedBodies.Data
             };
 
             var response = await client.PostAsJsonAsync<JSONEmailPassword>($"{Utilities.httpAddress}/addUser/{strName}/{strPhone}", emailPassword);
-			return await response.Content.ReadFromJsonAsync<User>();
+            return await response.Content.ReadFromJsonAsync<User>();
 
         }
 
         public static async Task<List<Game>> GetUserGames(string userID)
-		{
-			HttpClient client = new HttpClient();
-			return await client.GetFromJsonAsync<List<Game>>(Utilities.httpAddress + $"/getUserGames/{userID}");
-        }
-
-		public static async Task<List<Game>> GetUserHostedGames(string userID)
-		{
-			HttpClient client = new HttpClient();
-			return await client.GetFromJsonAsync<List<Game>>(Utilities.httpAddress + $"/getUserHostedGames/{userID}");
-        }
-
-		public static async Task<List<Location>> GetArenas()
-		{
+        {
             HttpClient client = new HttpClient();
-			return await client.GetFromJsonAsync<List<Location>>(Utilities.httpAddress + "/arenas");
+            return await client.GetFromJsonAsync<List<Game>>(Utilities.httpAddress + $"/getUserGames/{userID}");
         }
 
-		public static async Task<List<Game>> GetGames(string gameID = "-1")
-		{
-			HttpClient client = new HttpClient();
-			List<Game> gameAsList;
+        public static async Task<List<Game>> GetUserHostedGames(string userID)
+        {
+            HttpClient client = new HttpClient();
+            return await client.GetFromJsonAsync<List<Game>>(Utilities.httpAddress + $"/getUserHostedGames/{userID}");
+        }
+
+        public static async Task<List<Location>> GetArenas()
+        {
+            HttpClient client = new HttpClient();
+            return await client.GetFromJsonAsync<List<Location>>(Utilities.httpAddress + "/arenas");
+        }
+
+        public static async Task<List<Game>> GetGames(string gameID = "-1")
+        {
+            HttpClient client = new HttpClient();
+            List<Game> gameAsList;
 
             if (gameID == "-1")
-			{
+            {
                 return await client.GetFromJsonAsync<List<Game>>($"{Utilities.httpAddress}/games");
             }
             else
-			{
-				return await client.GetFromJsonAsync<List<Game>>($"{Utilities.httpAddress}/games?gameID={gameID}");
+            {
+                return await client.GetFromJsonAsync<List<Game>>($"{Utilities.httpAddress}/games?gameID={gameID}");
             }
-		}
+        }
 
-		public static async Task<string> RemoveUserFromGame(string userID, string gameID)
-		{
+        public static async Task<string> RemoveUserFromGame(string userID, string gameID)
+        {
             HttpClient client = new HttpClient();
             return await client.GetStringAsync(Utilities.httpAddress + $"/removeUserFromGame/{userID}/{gameID}");
         }
 
-		public static async Task<string> RemoveGame(string gameID)
-		{
+        public static async Task<string> RemoveGame(string gameID)
+        {
             HttpClient client = new HttpClient();
             return await client.GetStringAsync(Utilities.httpAddress + $"/removeGame/{gameID}");
         }
 
-		public static async Task<bool> IsUserInGame(string userID, string gameID)
-		{
+        public static async Task<bool> IsUserInGame(string userID, string gameID)
+        {
             HttpClient client = new HttpClient();
-			string response = await client.GetStringAsync(Utilities.httpAddress + $"/isUserInGame/{userID}/{gameID}");
-			return response == "yes";
+            string response = await client.GetStringAsync(Utilities.httpAddress + $"/isUserInGame/{userID}/{gameID}");
+            return response == "yes";
         }
 
-		public static async Task<string> CheckUserCredentials(string userID, string password)
-		{
+        public static async Task<string> CheckUserCredentials(string userID, string password)
+        {
 
             HttpClient client = new HttpClient();
 
@@ -111,7 +111,7 @@ namespace NeedBodies.Data
             };
 
             var response = await client.PostAsJsonAsync<JSONPassword>($"{Utilities.httpAddress}/checkUser/{userID}", jsonPassword);
-			return await response.Content.ReadAsStringAsync();
+            return await response.Content.ReadAsStringAsync();
         }
 
         public static async Task<string> GetUserRID(string userID)
@@ -136,10 +136,10 @@ namespace NeedBodies.Data
         }
 
 
-		private class JSONPassword
-		{
-			public string password { get; set; }
-		}
+        private class JSONPassword
+        {
+            public string password { get; set; }
+        }
 
         private class JSONRIDPassword
         {
@@ -214,7 +214,7 @@ namespace NeedBodies.Data
                     smtpClient.Send(mailMessage);
                     return $"An email with a password reset link has been sent to {emailTo} if it is registered.";
                 }
-                catch(Exception exc)
+                catch (Exception exc)
                 {
                     return $"Error: {exc.ToString()}";
                 }
