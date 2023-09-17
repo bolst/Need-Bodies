@@ -29,11 +29,11 @@ namespace NeedBodies.Auth
                 }
 
                 var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, userSession.Name),
-                new Claim(ClaimTypes.Role, userSession.Role),
-                new Claim(ClaimTypes.Sid, userSession.ID)
-            }, "UserAuth"));
+                {
+                    new Claim(ClaimTypes.Name, userSession.Name),
+                    new Claim(ClaimTypes.Role, userSession.Role),
+                    new Claim(ClaimTypes.Sid, userSession.ID)
+                }, "UserAuth"));
                 return await Task.FromResult(new AuthenticationState(claimsPrincipal));
             }
             catch

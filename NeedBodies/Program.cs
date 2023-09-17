@@ -21,6 +21,7 @@ builder.Services
 
 // Add services to the container.
 builder.Services.AddAuthenticationCore();
+builder.Services.AddAuthorizationCore();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<ProtectedSessionStorage>();
@@ -44,8 +45,6 @@ builder.Services.AddSingleton(sp =>
     return service;
 });
 
-builder.Services.AddServerSideBlazor();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -57,10 +56,12 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
